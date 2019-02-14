@@ -1,3 +1,7 @@
+FROM alpine as shopware_source
+RUN apk add git \
+	&& git -c http.sslVerify=false clone https://git.dev.glo.gb/cloudhostingpublic/shopware_source
+
 FROM 1and1internet/debian-9-apache-php-7.2
 MAINTAINER jessica.smith@1and1.co.uk
 ARG DEBIAN_FRONTEND=noninteractive
@@ -29,10 +33,9 @@ RUN \
       echo 'apc.num_files_hint=8000'; \
       echo 'apc.ttl=3600'; \
   } > /etc/php/7.2/apache2/conf.d/10-apcu.ini && \
-  SHOPWARE_DOWNLOAD=$(curl -fsL http://en.community.shopware.com/_cat_725.html/ | grep -Eo 'http://releases.s3.shopware.com.s3.amazonaws.com/install_5.[0-9\.]+_[a-f0-9]+.zip' | sed 's/\.zip//' | sort -nr | uniq | head -1) && \
-  curl -fsL $SHOPWARE_DOWNLOAD.zip -o /usr/src/shopware.zip && \
-  echo Downloaded $SHOPWARE_DOWNLOAD.zip && \
   chmod -R 755 /hooks /init && \
   mkdir -p /var/www/html
+
+COPY --from=shopware_source /shopware_source/shopware.zip /usr/src/
 
 WORKDIR /var/www/html
