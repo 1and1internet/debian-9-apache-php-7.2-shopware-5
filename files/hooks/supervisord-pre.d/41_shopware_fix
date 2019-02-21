@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Prevent use of https unless the customer sets the SSL flag for the shop
+# This was effecting images on http only sites
+
+cd /var/www/html
+CULPRIT=engine/Shopware/Plugins/Default/Core/Router/Bootstrap.php
+if [ -f $CULPRIT ]; then
+    echo "WARNING: Applying SSL Fix"
+    sed -i -e 's|^\(\s*\)$request->setSecure();|\1if($shop->getSecure()) $request->setSecure();|' $CULPRIT
+fi
